@@ -1,0 +1,243 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <meta name="theme-color" content="#020617" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <title>VektorRennen</title>
+    <link rel="stylesheet" href="./style.css">
+    <!-- PeerJS for P2P Multiplayer -->
+    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
+  </head>
+  <body>
+    <div id="app">
+      <!-- Start Screen -->
+      <div id="start-screen" class="screen">
+        <h1 class="neon-title">Vektor<span>Rennen</span></h1>
+        <div class="start-input-group">
+          <label for="player-name-input-start">DEIN NAME</label>
+          <input type="text" id="player-name-input-start" placeholder="Spielername..." maxlength="12" value="Spieler 1">
+        </div>
+        <div class="menu-buttons">
+          <button id="btn-create-lobby" class="btn primary">Lobby erstellen</button>
+          <button id="btn-join-lobby" class="btn secondary">Lobby beitreten</button>
+        </div>
+      </div>
+
+      <!-- Lobby Screen -->
+      <div id="lobby-screen" class="screen hidden">
+        <div class="lobby-header">
+          <h2 class="neon-title">Game <span>Lobby</span></h2>
+        </div>
+        
+        <div class="lobby-container">
+          <div class="lobby-main">
+            <div class="lobby-slots" id="lobby-slots">
+              <!-- Cards will be injected here -->
+            </div>
+          </div>
+          
+          <div class="lobby-sidebar">
+            <div class="settings-card">
+              <h3 id="current-map-name">Standard Circuit</h3>
+              <div class="map-preview-container">
+                <img id="map-preview-image" src="" alt="Map Preview" />
+              </div>
+              
+              <div class="settings-group">
+                <label>Strecke</label>
+                <div class="selector-controls">
+                  <button id="btn-map-prev" class="selector-btn">◀</button>
+                  <span id="settings-map-name">Sand Circuit</span>
+                  <button id="btn-map-next" class="selector-btn">▶</button>
+                </div>
+              </div>
+
+              <div class="settings-group">
+                <label>Runden</label>
+                <div class="selector-controls stepper-controls">
+                  <button id="btn-laps-prev" class="selector-btn stepper-btn">−</button>
+                  <span id="settings-laps">4</span>
+                  <button id="btn-laps-next" class="selector-btn stepper-btn">+</button>
+                </div>
+              </div>
+
+              <div class="settings-group">
+                <label>KI-Schwierigkeit</label>
+                <div class="selector-controls stepper-controls">
+                  <button id="btn-diff-prev" class="selector-btn stepper-btn">−</button>
+                  <span id="settings-diff">Mittel</span>
+                  <button id="btn-diff-next" class="selector-btn stepper-btn">+</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="lobby-footer">
+          <button id="btn-leave-lobby" class="btn danger">Verlassen</button>
+          <div class="lobby-code-container">
+            <span class="code-label">LOBBY CODE</span>
+            <span class="code-value">#4921</span>
+          </div>
+          <div class="lobby-status-msg" id="lobby-status">Warte auf Spieler...</div>
+          <button id="btn-start-race" class="btn primary" disabled>Rennen starten</button>
+        </div>
+      </div>
+
+      <!-- Global Floating Chat -->
+      <div id="global-chat-container">
+        <div class="chat-card-floating" id="chat-window">
+          <div class="chat-header">
+            <span>Live Chat</span>
+            <button id="btn-close-chat" class="close-btn">&times;</button>
+          </div>
+          <div class="chat-messages" id="chat-messages">
+            <div class="chat-msg system">Willkommen im Chat!</div>
+          </div>
+          <div class="chat-input-group">
+            <input type="text" id="chat-input" placeholder="Nachricht..." maxlength="50">
+            <button id="btn-send-chat" class="btn primary">Senden</button>
+          </div>
+        </div>
+        
+        <button id="chat-toggle-btn" class="chat-toggle">
+          <span class="chat-icon">💬</span>
+          <span id="chat-notification-dot" class="notification-dot hidden"></span>
+        </button>
+      </div>
+
+      <!-- JOIN LOBBY SCREEN -->
+      <div id="join-lobby-screen" class="screen hidden">
+        <h2 class="neon-title">Lobby <span>Beitreten</span></h2>
+        
+        <div class="join-input-container">
+          <div class="input-group">
+            <label>DEIN NAME</label>
+            <input type="text" id="join-name-input" placeholder="Name eingeben..." maxlength="12" value="Spieler 2">
+          </div>
+          
+          <div class="input-group">
+            <label>LOBBY CODE</label>
+            <input type="text" id="join-code-input" placeholder="#0000" maxlength="5">
+          </div>
+
+          <div class="join-actions">
+            <button id="btn-confirm-join" class="btn primary">Beitreten</button>
+            <button id="btn-cancel-join" class="btn secondary">Zurück</button>
+          </div>
+        </div>
+      </div>
+      <div id="map-selection-screen" class="screen hidden">
+        <h2>Strecke wählen</h2>
+        <div class="map-grid" id="map-grid">
+          <!-- Maps will be injected by MapSelection -->
+        </div>
+        <div class="map-controls">
+          <button id="btn-confirm-map" class="btn primary" disabled>Strecke bestätigen</button>
+        </div>
+      </div>
+
+      <!-- Game Screen -->
+      <div id="game-screen" class="screen hidden">
+        <canvas id="game-canvas"></canvas>
+        
+        <!-- HUD -->
+        <div id="hud" class="hud-container">
+          <div class="hud-item hud-lap">Runde: <span id="hud-lap-val">1/—</span></div>
+          <div class="hud-item hud-time">Zeit: <span id="hud-time-val">00:00.00</span></div>
+          <div class="hud-item hud-pos">Pos: <span id="hud-pos-val">1.</span></div>
+        </div>
+
+        <!-- Countdown Overlay -->
+        <div id="countdown-overlay" class="countdown-overlay hidden">
+          <span id="countdown-text">3</span>
+        </div>
+
+        <!-- Touch: Lenken links, Gas/Bremse unten rechts (Tastatur unverändert) -->
+        <div id="mobile-controls" class="mobile-controls">
+          <div class="touch-steer" aria-label="Lenkung">
+            <button id="btn-left" class="control-btn touch-btn" type="button">◀</button>
+            <button id="btn-right" class="control-btn touch-btn" type="button">▶</button>
+          </div>
+          <div class="touch-pedals" aria-label="Gas und Bremse">
+            <button id="btn-up" class="control-btn touch-btn" type="button">▲</button>
+            <button id="btn-down" class="control-btn touch-btn" type="button">▼</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- End Screen -->
+      <div id="end-screen" class="screen hidden">
+        <h2>Rennen beendet</h2>
+        <div class="winner-announcement">
+          Sieger: <span id="winner-name" class="highlight">---</span>
+        </div>
+        <div class="leaderboard" id="leaderboard">
+          <!-- Leaderboard items injected here -->
+        </div>
+        <div class="end-controls">
+          <button id="btn-to-menu" class="btn primary">Zum Hauptmenü</button>
+        </div>
+      </div>
+
+      <!-- Kicked Notification Modal -->
+      <div id="kicked-overlay" class="overlay hidden">
+        <div class="modal-card">
+          <h2 class="neon-title">Entfernt</h2>
+          <p>Du wurdest aus dieser Lobby entfernt und kannst ihr nicht mehr beitreten.</p>
+          <button id="btn-kicked-ok" class="btn primary">ZURÜCK ZUM HAUPTMENÜ</button>
+        </div>
+      </div>
+
+      <!-- Lobby Info Modal (Host Only) -->
+      <div id="lobby-info-overlay" class="overlay hidden">
+        <div class="modal-card">
+          <h2 class="neon-title">Hinweis zur <span>Lobby</span></h2>
+          <p>Freunde können deiner Lobby nur beitreten, wenn sie sich im selben Netzwerk befinden und den Lobby-Code eingeben.</p>
+          <div class="lobby-code-display">
+            CODE: <span id="info-modal-code" class="highlight">#0000</span>
+          </div>
+          <button id="btn-lobby-info-ok" class="btn primary">VERSTANDEN</button>
+        </div>
+      </div>
+
+      <!-- Player Count Modal (Host Only) -->
+      <div id="player-count-overlay" class="overlay hidden">
+        <div class="modal-card player-count-modal">
+          <h2 class="neon-title">Lobby <span>Setup</span></h2>
+          <p>Wie viele Rennfahrer sollen mitmachen?</p>
+          <div class="player-count-grid" id="player-count-grid">
+            <!-- Buttons 2–4 injected by JS -->
+          </div>
+          <div class="player-count-hint">
+            Echte Spieler ersetzen KI-Bots automatisch.
+          </div>
+          <div class="modal-actions">
+            <button id="btn-setup-confirm" class="btn primary">LOBBY ERSTELLEN</button>
+            <button id="btn-setup-cancel" class="btn secondary">ABBRECHEN</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Querformat (über #app, damit es sichtbar bleibt) -->
+    <div id="landscape-hint" class="landscape-hint hidden" role="dialog" aria-modal="true" aria-labelledby="landscape-hint-title">
+      <div class="landscape-hint-inner">
+        <div class="landscape-hint-icon" aria-hidden="true">📱</div>
+        <h2 id="landscape-hint-title">Bitte quer halten</h2>
+        <p>Dreh dein Gerät ins <strong>Querformat</strong> (lange Kante oben) — für Start, Lobby und Rennen.</p>
+        <p class="landscape-hint-sub">So sind alle Bedienelemente gut erreichbar.</p>
+      </div>
+    </div>
+    
+    <script type="module" src="./src/main.js"></script>
+  </body>
+</html>
